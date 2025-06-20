@@ -52,10 +52,8 @@ export default function TranscriptContainer({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className={`text-center py-12 text-gray-500 dark:text-gray-400 ${fullScreen ? "min-h-[50vh] flex flex-col items-center justify-center" : ""}`}
-              >
-                <div className="text-4xl mb-4 opacity-50">💬</div>
-                <p className="text-sm">Your conversation will appear here...</p>
-              </motion.div>
+              />
+            
             ) : (
               messages.map((message, index) => (
                 <TranscriptCard

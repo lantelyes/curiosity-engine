@@ -146,7 +146,7 @@ export default function Home() {
               </AnimatePresence>
 
               {/* Start Button */}
-              <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-col items-center">
                 <AnimatedButton
                   onClick={startConversation}
                   disabled={isConnecting}
@@ -154,25 +154,42 @@ export default function Home() {
                   size="lg"
                   className="min-w-[200px]"
                 >
-                  {isConnecting ? (
-                    <>
+                  <AnimatePresence mode="wait">
+                    {isConnecting ? (
                       <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                      />
-                      Connecting...
-                    </>
-                  ) : (
-                    "Start Interview"
-                  )}
-                </AnimatedButton>
+                        key="connecting"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center justify-center gap-2"
+                      >
+                        {/* Spinner */}
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        />
 
-                <StatusIndicator status={getStatus()} />
+                        <span>Connecting...</span>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="start"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Start Interview
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </AnimatedButton>
               </div>
 
               {/* Floating decoration elements */}
@@ -228,7 +245,7 @@ export default function Home() {
               {/* End Interview Button - Right */}
               <motion.button
                 onClick={stopConversation}
-                className="text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 flex items-center gap-2 shadow-lg backdrop-blur-sm"
+                className="text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 flex items-center gap-2 shadow-lg backdrop-blur-sm cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
