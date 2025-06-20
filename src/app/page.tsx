@@ -5,7 +5,7 @@ import { useConversation } from '@elevenlabs/react';
 
 interface TranscriptMessage {
   id: string;
-  speaker: 'user' | 'assistant';
+  speaker: 'user' | 'ai';
   text: string;
   timestamp: Date;
 }
@@ -23,31 +23,29 @@ export default function Home() {
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs');
     },
-    onMessage: (message) => {
-      console.log('Received message:', message);
+    onMessage: ({ message, source }) => {
+      console.log('Received message:', { message, source });
       
-      // Handle different message types from ElevenLabs
-      if (message.type === 'user_transcript' && message.text) {
-        const userMessage: TranscriptMessage = {
-          id: `user-${Date.now()}`,
-          speaker: 'user',
-          text: message.text,
+      // Handle messages from ElevenLabs
+      if (message && source) {
+        const transcriptMessage: TranscriptMessage = {
+          id: `${source}-${Date.now()}`,
+          speaker: source as 'user' | 'ai',
+          text: message,
           timestamp: new Date(),
         };
-        setTranscript(prev => [...prev, userMessage]);
-      } else if (message.type === 'agent_response' && message.text) {
-        const assistantMessage: TranscriptMessage = {
-          id: `assistant-${Date.now()}`,
-          speaker: 'assistant',
-          text: message.text,
-          timestamp: new Date(),
-        };
-        setTranscript(prev => [...prev, assistantMessage]);
+        setTranscript(prev => [...prev, transcriptMessage]);
       }
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error('Conversation error:', error);
-      setError(error.message || 'An error occurred');
+      const errorMessage = 
+        typeof error === 'string' 
+          ? error 
+          : error instanceof Error 
+            ? error.message 
+            : 'An error occurred';
+      setError(errorMessage);
     },
   });
 
