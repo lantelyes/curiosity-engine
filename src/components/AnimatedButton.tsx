@@ -45,8 +45,8 @@ export default function AnimatedButton({
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${disabledStyles} ${className} rounded-full overflow-hidden`}
-      whileHover={!disabled ? { scale: 1.02, translateY: -2 } : {}}
-      whileTap={!disabled ? { scale: 0.98, translateY: 0 } : {}}
+      whileHover={!disabled ? { scale: 1.02, y: -2 } : {}}
+      whileTap={!disabled ? { scale: 0.98, y: 0 } : {}}
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
