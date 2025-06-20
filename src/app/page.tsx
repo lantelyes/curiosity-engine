@@ -143,7 +143,7 @@ export default function Home() {
       <div className="glass border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
-            💰 SurveyRewards
+            💰 CuriosityEngine
           </h1>
           <div className="text-sm">
             <span className="text-gray-600 dark:text-gray-400">Total Balance: </span>

@@ -11,14 +11,6 @@ interface TopicGridProps {
 export default function TopicGrid({ topics, onSelectTopic }: TopicGridProps) {
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-2xl font-bold mb-2">Select a Topic to Start Earning</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Choose a survey topic that interests you
-        </p>
-      </div>
-
       {/* Topic Cards Grid */}
       <div className="flex-1 p-6 overflow-auto">
         <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">

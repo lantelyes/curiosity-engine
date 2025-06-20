@@ -36,14 +36,6 @@ export default function EarningsOverview() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <span className="text-2xl">💵</span>
-          Earnings Summary
-        </h2>
-      </div>
-
       {/* Content */}
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         {/* Today's Earnings */}

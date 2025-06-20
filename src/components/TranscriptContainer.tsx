@@ -34,11 +34,6 @@ export default function TranscriptContainer({
       transition={{ duration: 0.3 }}
       className={fullScreen ? "h-full" : ""}
     >
-      {!fullScreen && (
-        <h2 className="mb-6 text-xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
-          Conversation Transcript
-        </h2>
-      )}
 
       <div
         ref={containerRef}

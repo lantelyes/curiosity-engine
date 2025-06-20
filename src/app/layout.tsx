@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SurveyRewards - Earn Money for Your Opinions",
+  title: "CuriosityEngine - Earn Money for Your Opinions",
   description: "Get paid for participating in AI-powered survey interviews",
 };
 
