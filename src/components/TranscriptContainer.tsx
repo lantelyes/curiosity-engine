@@ -53,7 +53,6 @@ export default function TranscriptContainer({
                 exit={{ opacity: 0 }}
                 className={`text-center py-12 text-gray-500 dark:text-gray-400 ${fullScreen ? "min-h-[50vh] flex flex-col items-center justify-center" : ""}`}
               />
-            
             ) : (
               messages.map((message, index) => (
                 <TranscriptCard
