@@ -36,12 +36,14 @@ This Next.js application implements an AI-powered interview assistant using Open
 ## Technical Details
 
 ### WebRTC Implementation
+
 - Uses WebRTC for real-time audio communication
 - Establishes peer connection with OpenAI's servers
 - Audio streams are handled automatically by the browser
 - Data channel is used for session events and configuration
 
 ### Interview Features
+
 - AI acts as an empathetic interviewer
 - Starts with a specific opening question
 - Asks thoughtful follow-up questions
@@ -49,6 +51,7 @@ This Next.js application implements an AI-powered interview assistant using Open
 - Shows genuine curiosity and empathy
 
 ### Transcript Feature
+
 - Real-time transcription of both user and AI speech
 - User input transcribed using Whisper model
 - AI responses shown as they're generated
@@ -57,6 +60,7 @@ This Next.js application implements an AI-powered interview assistant using Open
 - Perfect for capturing interview content
 
 ### Architecture
+
 - `/api/realtime/session` - Creates ephemeral tokens for secure client-side authentication
 - `/api/realtime/webrtc` - Handles SDP exchange for WebRTC connection establishment
 - `/utils/webrtc-client.ts` - WebRTC client implementation
@@ -71,6 +75,7 @@ This Next.js application implements an AI-powered interview assistant using Open
 ### Available Models
 
 As of 2025, the following realtime models are available:
+
 - `gpt-4o-realtime-preview-2025-06-03` - Latest full-featured model (default)
 - `gpt-4o-mini-realtime-preview` - Lower-cost option with similar capabilities
 - `gpt-4o-realtime-preview-2024-12-17` - Previous version

@@ -18,12 +18,14 @@ An interactive AI interview assistant built with Next.js and ElevenLabs Conversa
 ## Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/curiosity-engine.git
 cd curiosity-engine
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
@@ -31,6 +33,7 @@ pnpm install
 3. Configure environment variables:
    - Copy `.env.example` to `.env.local`
    - Add your ElevenLabs API key and Agent ID:
+
 ```bash
 ELEVENLABS_API_KEY=your-elevenlabs-api-key-here
 NEXT_PUBLIC_ELEVENLABS_AGENT_ID=your-elevenlabs-agent-id-here

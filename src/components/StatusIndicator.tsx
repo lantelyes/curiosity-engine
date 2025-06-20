@@ -1,25 +1,28 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface StatusIndicatorProps {
-  status: 'idle' | 'connecting' | 'connected' | 'listening' | 'speaking';
+  status: "idle" | "connecting" | "connected" | "listening" | "speaking";
   text?: string;
 }
 
-export default function StatusIndicator({ status, text }: StatusIndicatorProps) {
+export default function StatusIndicator({
+  status,
+  text,
+}: StatusIndicatorProps) {
   const statusConfig = {
-    idle: { color: '#6b7280', text: '' },
-    connecting: { color: '#f59e0b', text: 'Connecting...' },
-    connected: { color: '#10b981', text: 'Connected' },
-    listening: { color: '#10b981', text: 'Listening...' },
-    speaking: { color: '#3b82f6', text: 'AI is speaking...' },
+    idle: { color: "#6b7280", text: "" },
+    connecting: { color: "#f59e0b", text: "Connecting..." },
+    connected: { color: "#10b981", text: "Connected" },
+    listening: { color: "#10b981", text: "Listening..." },
+    speaking: { color: "#3b82f6", text: "AI is speaking..." },
   };
 
   const config = statusConfig[status];
   const displayText = text || config.text;
 
-  if (status === 'idle' && !text) return null;
+  if (status === "idle" && !text) return null;
 
   return (
     <AnimatePresence mode="wait">
@@ -43,25 +46,29 @@ export default function StatusIndicator({ status, text }: StatusIndicatorProps) 
             transition={{
               duration: 2,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
             }}
           />
-          
+
           {/* Inner dot with pulse */}
           <motion.div
             className="relative h-3 w-3 rounded-full"
             style={{ backgroundColor: config.color }}
-            animate={status !== 'idle' ? {
-              scale: [1, 1.1, 1],
-            } : {}}
+            animate={
+              status !== "idle"
+                ? {
+                    scale: [1, 1.1, 1],
+                  }
+                : {}
+            }
             transition={{
               duration: 0.5,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
             }}
           />
         </div>
-        
+
         <motion.span
           className="text-sm font-medium"
           style={{ color: config.color }}
