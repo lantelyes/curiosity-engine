@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useConversation } from "@elevenlabs/react";
 import { motion, AnimatePresence } from "framer-motion";
-import AnimatedButton from "@/components/AnimatedButton";
-import StatusIndicator from "@/components/StatusIndicator";
 import TranscriptContainer from "@/components/TranscriptContainer";
+import InterviewPanel from "@/components/InterviewPanel";
+import EarningsPanel from "@/components/EarningsPanel";
+import TopicGrid from "@/components/TopicGrid";
+import EarningsOverview from "@/components/EarningsOverview";
+import { surveyTopics, SurveyTopic } from "@/config/surveyTopics";
 
 interface TranscriptMessage {
   id: string;
@@ -17,6 +20,16 @@ interface TranscriptMessage {
 export default function Home() {
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<SurveyTopic | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [currentEarnings, setCurrentEarnings] = useState(0);
+  const [totalBalance, setTotalBalance] = useState(0);
+
+  useEffect(() => {
+    // Load total balance from localStorage on client side
+    const total = parseFloat(localStorage.getItem("totalEarnings") || "0");
+    setTotalBalance(total);
+  }, [currentEarnings]);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -51,9 +64,10 @@ export default function Home() {
     },
   });
 
-  const startConversation = useCallback(async () => {
+  const startConversation = useCallback(async (topic: SurveyTopic) => {
     try {
       setError(null);
+      setSelectedTopic(topic);
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
       const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
@@ -61,7 +75,16 @@ export default function Home() {
         throw new Error("ElevenLabs Agent ID not configured");
       }
 
-      await conversation.startSession({ agentId });
+      const sessionOptions = {
+        agentId,
+        dynamicVariables: {
+          initial_question: topic.initialQuestion,
+          survey_topic: topic.name,
+        },
+      };
+      
+      await conversation.startSession(sessionOptions);
+      setSessionStartTime(new Date());
     } catch (err) {
       console.error("Failed to start conversation:", err);
       setError(
@@ -73,11 +96,35 @@ export default function Home() {
   const stopConversation = useCallback(async () => {
     try {
       await conversation.endSession();
+      
+      // Save earnings to localStorage
+      if (currentEarnings > 0) {
+        const dailyEarnings = parseFloat(localStorage.getItem("dailyEarnings") || "0");
+        const completedToday = parseInt(localStorage.getItem("completedToday") || "0");
+        const totalEarnings = parseFloat(localStorage.getItem("totalEarnings") || "0");
+        const today = new Date().toDateString();
+        const lastSaveDate = localStorage.getItem("lastSaveDate");
+        
+        if (lastSaveDate !== today) {
+          // Reset daily stats if it's a new day
+          localStorage.setItem("dailyEarnings", currentEarnings.toString());
+          localStorage.setItem("completedToday", "1");
+        } else {
+          localStorage.setItem("dailyEarnings", (dailyEarnings + currentEarnings).toString());
+          localStorage.setItem("completedToday", (completedToday + 1).toString());
+        }
+        localStorage.setItem("lastSaveDate", today);
+        localStorage.setItem("totalEarnings", (totalEarnings + currentEarnings).toString());
+      }
+      
       setTranscript([]);
+      setSelectedTopic(null);
+      setSessionStartTime(null);
+      setCurrentEarnings(0);
     } catch (err) {
       console.error("Failed to stop conversation:", err);
     }
-  }, [conversation]);
+  }, [conversation, currentEarnings]);
 
   const isConnected = conversation.status === "connected";
   const isConnecting = conversation.status === "connecting";
@@ -91,189 +138,112 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
-      <AnimatePresence mode="wait">
-        {!isConnected ? (
-          /* Landing View */
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <div className="glass border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+            💰 SurveyRewards
+          </h1>
+          <div className="text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Total Balance: </span>
+            <span className="font-semibold text-green-600 dark:text-green-400">
+              ${(totalBalance + currentEarnings).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      <AnimatePresence>
+        {error && (
           <motion.div
-            key="landing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="min-h-screen flex items-center justify-center p-4 md:p-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 glass rounded-lg p-4 border border-red-500/20 shadow-lg"
           >
-            <div className="w-full max-w-4xl">
-              {/* Header Section */}
-              <motion.div
-                className="text-center mb-12"
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              >
-                <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
-                  Curiosity Engine
-                </h1>
-
-                <motion.p
-                  className="text-lg md:text-xl text-gray-600 dark:text-gray-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.4 }}
-                >
-                  Explore ideas through intelligent conversation
-                </motion.p>
-              </motion.div>
-
-              {/* Error Message */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="mb-6 glass rounded-xl p-4 border-l-4 border-red-500"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">⚠️</span>
-                      <p className="text-red-600 dark:text-red-400 font-medium">
-                        {error}
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Start Button */}
-              <div className="flex flex-col items-center">
-                <AnimatedButton
-                  onClick={startConversation}
-                  disabled={isConnecting}
-                  variant="primary"
-                  size="lg"
-                  className="min-w-[200px]"
-                >
-                  <AnimatePresence mode="wait">
-                    {isConnecting ? (
-                      <motion.div
-                        key="connecting"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        {/* Spinner */}
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            ease: "linear",
-                          }}
-                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                        />
-
-                        <span>Connecting...</span>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="start"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        Start Interview
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </AnimatedButton>
-              </div>
-
-              {/* Floating decoration elements */}
-              <motion.div
-                className="fixed top-20 right-10 w-32 h-32 md:w-64 md:h-64 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] rounded-full filter blur-3xl opacity-20 pointer-events-none hidden md:block"
-                animate={{
-                  x: [0, 30, 0],
-                  y: [0, -30, 0],
-                }}
-                transition={{
-                  duration: 10,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              <motion.div
-                className="fixed bottom-20 left-10 w-48 h-48 md:w-96 md:h-96 bg-gradient-to-tr from-[var(--accent)] to-[var(--secondary)] rounded-full filter blur-3xl opacity-20 pointer-events-none hidden md:block"
-                animate={{
-                  x: [0, -30, 0],
-                  y: [0, 30, 0],
-                }}
-                transition={{
-                  duration: 15,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </div>
-          </motion.div>
-        ) : (
-          /* Interview View */
-          <motion.div
-            key="interview"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="h-screen flex flex-col"
-          >
-            {/* Floating Controls */}
-            <motion.div
-              className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 md:p-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
-            >
-              {/* Status Indicator - Left */}
-              <div className="glass rounded-full px-4 py-2 shadow-lg">
-                <StatusIndicator status={getStatus()} />
-              </div>
-
-              {/* End Interview Button - Right */}
-              <motion.button
-                onClick={stopConversation}
-                className="text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 flex items-center gap-2 shadow-lg backdrop-blur-sm cursor-pointer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="hidden sm:inline">End Interview</span>
-                <span className="sm:hidden">End</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </motion.button>
-            </motion.div>
-
-            {/* Full-screen Transcript */}
-            <div className="flex-1 pt-20 md:pt-24 pb-8">
-              <TranscriptContainer messages={transcript} fullScreen />
+            <div className="flex items-center gap-3">
+              <span className="text-red-500">⚠️</span>
+              <p className="text-red-600 dark:text-red-400">{error}</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Dynamic Content */}
+        <div className="flex-1 glass border-r border-gray-200 dark:border-gray-800">
+          <AnimatePresence mode="wait">
+            {!selectedTopic ? (
+              <motion.div
+                key="topic-selection"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+              >
+                <TopicGrid
+                  topics={surveyTopics}
+                  onSelectTopic={startConversation}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="interview"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+              >
+                <InterviewPanel
+                  topic={selectedTopic}
+                  status={getStatus()}
+                  onEndInterview={stopConversation}
+                >
+                  <TranscriptContainer messages={transcript} fullScreen={false} />
+                </InterviewPanel>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Right Panel - Earnings */}
+        <div className="w-96 glass">
+          <AnimatePresence mode="wait">
+            {!selectedTopic || !sessionStartTime ? (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+              >
+                <EarningsOverview />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="live-earnings"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+              >
+                <EarningsPanel
+                  topic={selectedTopic}
+                  startTime={sessionStartTime}
+                  onEarningsUpdate={setCurrentEarnings}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 }
