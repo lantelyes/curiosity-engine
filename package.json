@@ -17,6 +17,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@elevenlabs/react": "^0.1.7",
     "next": "15.3.4",
     "openai": "^5.5.1",
     "react": "^19.0.0",
