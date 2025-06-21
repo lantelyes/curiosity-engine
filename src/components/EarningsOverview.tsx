@@ -141,20 +141,6 @@ export default function EarningsOverview() {
             </div>
           </div>
         </motion.div>
-
-        {/* Achievement */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass rounded-xl p-4 text-center"
-        >
-          <div className="text-sm font-medium">Keep it up!</div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Complete {Math.max(3 - completedToday, 0)} more surveys to unlock
-            bonus rewards
-          </div>
-        </motion.div>
       </div>
     </div>
   );
