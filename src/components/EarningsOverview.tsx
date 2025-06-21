@@ -149,10 +149,9 @@ export default function EarningsOverview() {
           transition={{ delay: 0.2 }}
           className="glass rounded-xl p-4 text-center"
         >
-          <div className="text-2xl mb-2">🏆</div>
           <div className="text-sm font-medium">Keep it up!</div>
           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Complete {Math.max(5 - completedToday, 0)} more surveys to unlock
+            Complete {Math.max(3 - completedToday, 0)} more surveys to unlock
             bonus rewards
           </div>
         </motion.div>
