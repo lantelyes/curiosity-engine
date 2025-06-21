@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Type for Prisma groupBy result
+type GroupedEarning = {
+  createdAt: Date;
+  _sum: {
+    amount: number | null;
+  };
+};
+
 export async function GET() {
   try {
     const session = await auth();
@@ -64,7 +72,7 @@ export async function GET() {
     });
 
     // Format weekly data by day
-    const weekData = [];
+    const weekData: { day: string; amount: number }[] = [];
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     for (let i = 0; i < 7; i++) {
@@ -72,11 +80,11 @@ export async function GET() {
       date.setDate(startOfWeek.getDate() + i);
 
       const dayEarnings = weeklyEarnings
-        .filter((e) => {
+        .filter((e: GroupedEarning) => {
           const earningDate = new Date(e.createdAt);
           return earningDate.toDateString() === date.toDateString();
         })
-        .reduce((sum, e) => sum + (e._sum.amount || 0), 0);
+        .reduce((sum: number, e: GroupedEarning) => sum + (e._sum.amount || 0), 0);
 
       weekData.push({
         day: days[i],
