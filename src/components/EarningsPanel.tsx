@@ -34,6 +34,7 @@ export default function EarningsPanel({
     }, 100); // Update every 100ms for smooth animation
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTime, topic.ratePerMinute, onEarningsUpdate]);
 
   const formatTime = (seconds: number) => {
