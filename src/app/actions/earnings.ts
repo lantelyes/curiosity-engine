@@ -119,7 +119,7 @@ export async function getEarningsStats(): Promise<{
           const earningDate = new Date(e.createdAt);
           return earningDate.toDateString() === date.toDateString();
         })
-        .reduce((sum: number, e) => sum + (e._sum.amount || 0), 0);
+        .reduce((sum: number, e: GroupedEarning) => sum + (e._sum.amount || 0), 0);
 
       weekData.push({
         day: days[i],
