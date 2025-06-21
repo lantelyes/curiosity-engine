@@ -94,7 +94,7 @@ export async function getEarningsStats() {
     });
 
     // Format weekly data by day
-    const weekData = [];
+    const weekData: { day: string; amount: number }[] = [];
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     for (let i = 0; i < 7; i++) {
@@ -102,11 +102,11 @@ export async function getEarningsStats() {
       date.setDate(startOfWeek.getDate() + i);
 
       const dayEarnings = weeklyEarnings
-        .filter((e) => {
+        .filter((e: { createdAt: Date; _sum: { amount: number | null } }) => {
           const earningDate = new Date(e.createdAt);
           return earningDate.toDateString() === date.toDateString();
         })
-        .reduce((sum, e) => sum + (e._sum.amount || 0), 0);
+        .reduce((sum: number, e: { _sum: { amount: number | null } }) => sum + (e._sum.amount || 0), 0);
 
       weekData.push({
         day: days[i],
