@@ -59,7 +59,7 @@ export default function StatusIndicator({
                 ? {
                     scale: [1, 1.1, 1],
                   }
-                : {}
+                : undefined
             }
             transition={{
               duration: 0.5,

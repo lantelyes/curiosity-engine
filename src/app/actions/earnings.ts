@@ -3,12 +3,20 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Type for Prisma groupBy result
+type GroupedEarning = {
+  createdAt: Date;
+  _sum: {
+    amount: number | null;
+  };
+};
+
 export async function saveEarning(
   topicId: string,
   topicName: string,
   amount: number,
   duration: number,
-) {
+): Promise<{ id: string; userId: string; amount: number; topicId: string; topicName: string; duration: number; createdAt: Date }> {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -34,7 +42,12 @@ export async function saveEarning(
   }
 }
 
-export async function getEarningsStats() {
+export async function getEarningsStats(): Promise<{
+  total: number;
+  daily: number;
+  completedToday: number;
+  weekData: { day: string; amount: number }[];
+}> {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -102,11 +115,11 @@ export async function getEarningsStats() {
       date.setDate(startOfWeek.getDate() + i);
 
       const dayEarnings = weeklyEarnings
-        .filter((e: { createdAt: Date; _sum: { amount: number | null } }) => {
+        .filter((e: GroupedEarning) => {
           const earningDate = new Date(e.createdAt);
           return earningDate.toDateString() === date.toDateString();
         })
-        .reduce((sum: number, e: { _sum: { amount: number | null } }) => sum + (e._sum.amount || 0), 0);
+        .reduce((sum, e) => sum + (e._sum.amount || 0), 0);
 
       weekData.push({
         day: days[i],

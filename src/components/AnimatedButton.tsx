@@ -45,8 +45,8 @@ export default function AnimatedButton({
       onClick={onClick}
       disabled={disabled}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${disabledStyles} ${className} rounded-full overflow-hidden`}
-      whileHover={!disabled ? { scale: 1.02, y: -2 } : {}}
-      whileTap={!disabled ? { scale: 0.98, y: 0 } : {}}
+      whileHover={!disabled ? { scale: 1.02, y: -2 } : undefined}
+      whileTap={!disabled ? { scale: 0.98, y: 0 } : undefined}
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
@@ -74,7 +74,7 @@ export default function AnimatedButton({
                 opacity: 0,
                 transition: { duration: 0.4 },
               }
-            : {}
+            : undefined
         }
         style={{
           background:
@@ -92,7 +92,7 @@ export default function AnimatedButton({
               : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
           filter: "blur(20px)",
         }}
-        whileHover={!disabled ? { opacity: 0.6 } : {}}
+        whileHover={!disabled ? { opacity: 0.6 } : undefined}
         transition={{ duration: 0.3 }}
       />
 
