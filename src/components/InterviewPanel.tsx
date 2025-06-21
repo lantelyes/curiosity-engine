@@ -36,9 +36,7 @@ export default function InterviewPanel({
       </div>
 
       {/* Transcript Area */}
-      <div className="flex-1 overflow-hidden p-4">
-        {children}
-      </div>
+      <div className="flex-1 overflow-hidden p-4">{children}</div>
 
       {/* Controls */}
       <div className="border-t border-gray-200 dark:border-gray-800 p-4">

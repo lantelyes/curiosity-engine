@@ -26,7 +26,7 @@ export default function EarningsPanel({
       const elapsed = (now.getTime() - startTime.getTime()) / 1000; // seconds
       const minutes = elapsed / 60;
       const newEarnings = minutes * topic.ratePerMinute;
-      
+
       setElapsedTime(elapsed);
       setPreviousEarnings(earnings);
       setEarnings(newEarnings);
@@ -34,7 +34,7 @@ export default function EarningsPanel({
     }, 100); // Update every 100ms for smooth animation
 
     return () => clearInterval(interval);
-  }, [startTime, topic.ratePerMinute, onEarningsUpdate, earnings]);
+  }, [startTime, topic.ratePerMinute, onEarningsUpdate]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -42,9 +42,16 @@ export default function EarningsPanel({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const progress = Math.min((earnings / (topic.estimatedMinutes * topic.ratePerMinute)) * 100, 100);
-  const dailyEarnings = parseFloat(localStorage.getItem("dailyEarnings") || "0");
-  const completedToday = parseInt(localStorage.getItem("completedToday") || "0");
+  const progress = Math.min(
+    (earnings / (topic.estimatedMinutes * topic.ratePerMinute)) * 100,
+    100,
+  );
+  const dailyEarnings = parseFloat(
+    localStorage.getItem("dailyEarnings") || "0",
+  );
+  const completedToday = parseInt(
+    localStorage.getItem("completedToday") || "0",
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -93,13 +100,13 @@ export default function EarningsPanel({
             </div>
             <motion.div
               className="text-xs text-gray-500 dark:text-gray-400 mt-2"
-              animate={{ 
+              animate={{
                 opacity: [0.5, 1, 0.5],
               }}
-              transition={{ 
+              transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             >
               earning steadily
@@ -111,7 +118,9 @@ export default function EarningsPanel({
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">Rate</span>
-            <span className="font-medium">${topic.ratePerMinute.toFixed(2)}/min</span>
+            <span className="font-medium">
+              ${topic.ratePerMinute.toFixed(2)}/min
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">Time</span>
@@ -140,7 +149,9 @@ export default function EarningsPanel({
           </h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Completed</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                Completed
+              </span>
               <span className="font-medium">{completedToday} surveys</span>
             </div>
             <div className="flex justify-between">

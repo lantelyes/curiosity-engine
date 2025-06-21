@@ -17,9 +17,12 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.9.1",
     "@elevenlabs/react": "^0.1.7",
+    "@prisma/client": "^6.10.1",
     "framer-motion": "^12.18.1",
     "next": "15.3.4",
+    "next-auth": "5.0.0-beta.28",
     "openai": "^5.5.1",
     "react": "^19.0.0",
     "react-countup": "^6.5.3",
@@ -37,6 +40,7 @@
     "eslint-plugin-prettier": "^5.5.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.13",
+    "prisma": "^6.10.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

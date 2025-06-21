@@ -34,7 +34,6 @@ export default function TranscriptContainer({
       transition={{ duration: 0.3 }}
       className={fullScreen ? "h-full" : ""}
     >
-
       <div
         ref={containerRef}
         className={`${fullScreen ? "h-full" : "max-h-[400px] md:max-h-[500px] pr-2"} overflow-y-auto custom-scrollbar`}

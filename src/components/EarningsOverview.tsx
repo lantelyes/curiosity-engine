@@ -2,33 +2,57 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { getEarningsStats } from "@/app/actions/earnings";
 
 export default function EarningsOverview() {
   const [dailyEarnings, setDailyEarnings] = useState(0);
   const [weeklyEarnings, setWeeklyEarnings] = useState(0);
   const [completedToday, setCompletedToday] = useState(0);
-  const [weekData, setWeekData] = useState<{ day: string; amount: number }[]>([]);
+  const [weekData, setWeekData] = useState<{ day: string; amount: number }[]>(
+    [],
+  );
 
   useEffect(() => {
-    // Load earnings data from localStorage
-    const daily = parseFloat(localStorage.getItem("dailyEarnings") || "0");
-    const completed = parseInt(localStorage.getItem("completedToday") || "0");
-    
-    setDailyEarnings(daily);
-    setCompletedToday(completed);
+    // Load earnings data from database
+    const loadStats = async () => {
+      try {
+        const stats = await getEarningsStats();
+        setDailyEarnings(stats.daily);
+        setCompletedToday(stats.completedToday);
+        setWeekData(stats.weekData);
 
-    // Generate week data (mock for now, could be stored in localStorage)
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const today = new Date().getDay();
-    const weeklyData = days.map((day, index) => ({
-      day,
-      amount: index < today ? Math.random() * 30 + 10 : 0,
-    }));
-    weeklyData[today === 0 ? 6 : today - 1].amount = daily; // Set today's earnings
-    
-    const weekTotal = weeklyData.reduce((sum, day) => sum + day.amount, 0);
-    setWeeklyEarnings(weekTotal);
-    setWeekData(weeklyData);
+        const weekTotal = stats.weekData.reduce(
+          (sum, day) => sum + day.amount,
+          0,
+        );
+        setWeeklyEarnings(weekTotal);
+      } catch {
+        // Failed to load earnings stats
+        // Fallback to localStorage
+        const daily = parseFloat(localStorage.getItem("dailyEarnings") || "0");
+        const completed = parseInt(
+          localStorage.getItem("completedToday") || "0",
+        );
+
+        setDailyEarnings(daily);
+        setCompletedToday(completed);
+
+        // Generate week data (mock for now, could be stored in localStorage)
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const today = new Date().getDay();
+        const weeklyData = days.map((day, index) => ({
+          day,
+          amount: index < today ? Math.random() * 30 + 10 : 0,
+        }));
+        weeklyData[today === 0 ? 6 : today - 1].amount = daily; // Set today's earnings
+
+        const weekTotal = weeklyData.reduce((sum, day) => sum + day.amount, 0);
+        setWeeklyEarnings(weekTotal);
+        setWeekData(weeklyData);
+      }
+    };
+
+    loadStats();
   }, []);
 
   const dailyGoal = 25;
@@ -55,7 +79,7 @@ export default function EarningsOverview() {
               {completedToday} surveys completed
             </div>
           </div>
-          
+
           {/* Daily Goal Progress */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
@@ -71,10 +95,9 @@ export default function EarningsOverview() {
               />
             </div>
             <div className="text-xs text-gray-500 text-center">
-              {dailyProgress < 100 
+              {dailyProgress < 100
                 ? `$${(dailyGoal - dailyEarnings).toFixed(2)} to go`
-                : "Goal achieved! 🎉"
-              }
+                : "Goal achieved! 🎉"}
             </div>
           </div>
         </motion.div>
@@ -98,8 +121,12 @@ export default function EarningsOverview() {
                 transition={{ delay: 0.2 + index * 0.05 }}
                 className="flex justify-between text-sm"
               >
-                <span className="text-gray-600 dark:text-gray-400">{day.day}</span>
-                <span className={day.amount > 0 ? "font-medium" : "text-gray-400"}>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {day.day}
+                </span>
+                <span
+                  className={day.amount > 0 ? "font-medium" : "text-gray-400"}
+                >
                   ${day.amount.toFixed(2)}
                 </span>
               </motion.div>
@@ -125,7 +152,8 @@ export default function EarningsOverview() {
           <div className="text-2xl mb-2">🏆</div>
           <div className="text-sm font-medium">Keep it up!</div>
           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Complete {Math.max(5 - completedToday, 0)} more surveys to unlock bonus rewards
+            Complete {Math.max(5 - completedToday, 0)} more surveys to unlock
+            bonus rewards
           </div>
         </motion.div>
       </div>

@@ -8,7 +8,9 @@ import InterviewPanel from "@/components/InterviewPanel";
 import EarningsPanel from "@/components/EarningsPanel";
 import TopicGrid from "@/components/TopicGrid";
 import EarningsOverview from "@/components/EarningsOverview";
+import { UserProfile } from "@/components/UserProfile";
 import { surveyTopics, SurveyTopic } from "@/config/surveyTopics";
+import { saveEarning, getEarningsStats } from "@/app/actions/earnings";
 
 interface TranscriptMessage {
   id: string;
@@ -26,21 +28,31 @@ export default function Home() {
   const [totalBalance, setTotalBalance] = useState(0);
 
   useEffect(() => {
-    // Load total balance from localStorage on client side
-    const total = parseFloat(localStorage.getItem("totalEarnings") || "0");
-    setTotalBalance(total);
-  }, [currentEarnings]);
+    // Load total balance from database
+    const loadStats = async () => {
+      try {
+        const stats = await getEarningsStats();
+        setTotalBalance(stats.total);
+      } catch {
+        // Failed to load earnings stats
+        // Fallback to localStorage for offline support
+        const total = parseFloat(localStorage.getItem("totalEarnings") || "0");
+        setTotalBalance(total);
+      }
+    };
+    loadStats();
+  }, []);
 
   const conversation = useConversation({
     onConnect: () => {
-      console.log("Connected to ElevenLabs Conversational AI");
+      // Connected to ElevenLabs Conversational AI
       setError(null);
     },
     onDisconnect: () => {
-      console.log("Disconnected from ElevenLabs");
+      // Disconnected from ElevenLabs
     },
     onMessage: ({ message, source }) => {
-      console.log("Received message:", { message, source });
+      // Received message
 
       if (message && source) {
         const transcriptMessage: TranscriptMessage = {
@@ -53,7 +65,7 @@ export default function Home() {
       }
     },
     onError: (error: unknown) => {
-      console.error("Conversation error:", error);
+      // Conversation error occurred
       const errorMessage =
         typeof error === "string"
           ? error
@@ -64,67 +76,100 @@ export default function Home() {
     },
   });
 
-  const startConversation = useCallback(async (topic: SurveyTopic) => {
-    try {
-      setError(null);
-      setSelectedTopic(topic);
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+  const startConversation = useCallback(
+    async (topic: SurveyTopic) => {
+      try {
+        setError(null);
+        setSelectedTopic(topic);
+        await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
-      if (!agentId) {
-        throw new Error("ElevenLabs Agent ID not configured");
+        const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
+        if (!agentId) {
+          throw new Error("ElevenLabs Agent ID not configured");
+        }
+
+        const sessionOptions = {
+          agentId,
+          dynamicVariables: {
+            initial_question: topic.initialQuestion,
+            survey_topic: topic.name,
+          },
+        };
+
+        await conversation.startSession(sessionOptions);
+        setSessionStartTime(new Date());
+      } catch (err) {
+        // Failed to start conversation
+        setError(
+          err instanceof Error ? err.message : "Failed to start conversation",
+        );
       }
-
-      const sessionOptions = {
-        agentId,
-        dynamicVariables: {
-          initial_question: topic.initialQuestion,
-          survey_topic: topic.name,
-        },
-      };
-      
-      await conversation.startSession(sessionOptions);
-      setSessionStartTime(new Date());
-    } catch (err) {
-      console.error("Failed to start conversation:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to start conversation",
-      );
-    }
-  }, [conversation]);
+    },
+    [conversation],
+  );
 
   const stopConversation = useCallback(async () => {
     try {
       await conversation.endSession();
-      
-      // Save earnings to localStorage
-      if (currentEarnings > 0) {
-        const dailyEarnings = parseFloat(localStorage.getItem("dailyEarnings") || "0");
-        const completedToday = parseInt(localStorage.getItem("completedToday") || "0");
-        const totalEarnings = parseFloat(localStorage.getItem("totalEarnings") || "0");
-        const today = new Date().toDateString();
-        const lastSaveDate = localStorage.getItem("lastSaveDate");
-        
-        if (lastSaveDate !== today) {
-          // Reset daily stats if it's a new day
-          localStorage.setItem("dailyEarnings", currentEarnings.toString());
-          localStorage.setItem("completedToday", "1");
-        } else {
-          localStorage.setItem("dailyEarnings", (dailyEarnings + currentEarnings).toString());
-          localStorage.setItem("completedToday", (completedToday + 1).toString());
+
+      // Save earnings to database
+      if (currentEarnings > 0 && selectedTopic && sessionStartTime) {
+        const duration = Math.floor(
+          (new Date().getTime() - sessionStartTime.getTime()) / 1000,
+        );
+
+        try {
+          await saveEarning(
+            selectedTopic.id,
+            selectedTopic.name,
+            currentEarnings,
+            duration,
+          );
+        } catch {
+          // Failed to save earning to database
+          // Fallback to localStorage
+          const dailyEarnings = parseFloat(
+            localStorage.getItem("dailyEarnings") || "0",
+          );
+          const completedToday = parseInt(
+            localStorage.getItem("completedToday") || "0",
+          );
+          const totalEarnings = parseFloat(
+            localStorage.getItem("totalEarnings") || "0",
+          );
+          const today = new Date().toDateString();
+          const lastSaveDate = localStorage.getItem("lastSaveDate");
+
+          if (lastSaveDate !== today) {
+            // Reset daily stats if it's a new day
+            localStorage.setItem("dailyEarnings", currentEarnings.toString());
+            localStorage.setItem("completedToday", "1");
+          } else {
+            localStorage.setItem(
+              "dailyEarnings",
+              (dailyEarnings + currentEarnings).toString(),
+            );
+            localStorage.setItem(
+              "completedToday",
+              (completedToday + 1).toString(),
+            );
+          }
+          localStorage.setItem("lastSaveDate", today);
+          localStorage.setItem(
+            "totalEarnings",
+            (totalEarnings + currentEarnings).toString(),
+          );
         }
-        localStorage.setItem("lastSaveDate", today);
-        localStorage.setItem("totalEarnings", (totalEarnings + currentEarnings).toString());
       }
-      
+
       setTranscript([]);
       setSelectedTopic(null);
       setSessionStartTime(null);
       setCurrentEarnings(0);
-    } catch (err) {
-      console.error("Failed to stop conversation:", err);
+    } catch {
+      // Failed to stop conversation
     }
-  }, [conversation, currentEarnings]);
+  }, [conversation, currentEarnings, selectedTopic, sessionStartTime]);
 
   const isConnected = conversation.status === "connected";
   const isConnecting = conversation.status === "connecting";
@@ -145,11 +190,16 @@ export default function Home() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
             💰 CuriosityEngine
           </h1>
-          <div className="text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Total Balance: </span>
-            <span className="font-semibold text-green-600 dark:text-green-400">
-              ${(totalBalance + currentEarnings).toFixed(2)}
-            </span>
+          <div className="flex items-center gap-6">
+            <div className="text-sm">
+              <span className="text-gray-600 dark:text-gray-400">
+                Total Balance:{" "}
+              </span>
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                ${(totalBalance + currentEarnings).toFixed(2)}
+              </span>
+            </div>
+            <UserProfile />
           </div>
         </div>
       </div>
@@ -204,7 +254,10 @@ export default function Home() {
                   status={getStatus()}
                   onEndInterview={stopConversation}
                 >
-                  <TranscriptContainer messages={transcript} fullScreen={false} />
+                  <TranscriptContainer
+                    messages={transcript}
+                    fullScreen={false}
+                  />
                 </InterviewPanel>
               </motion.div>
             )}
